@@ -1,0 +1,1084 @@
+<!DOCTYPE html><html lang="ko"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>SEICALL PET - 므메미무</title>
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: #222;
+      font-family: 'Malgun Gothic', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    :root {
+      --lcd-bg: #FFE4E1;
+      --lcd-border: #D87093;
+      --lcd-text: #5C2438;
+      --lcd-btn-bg: #D87093;
+      --lcd-btn-text: #FFE4E1;
+      --bar-bg: #F4A6B7;
+    }
+
+    body.theme-pink { --lcd-bg: #FFE4E1; --lcd-border: #D87093; --lcd-text: #5C2438; --lcd-btn-bg: #D87093; --lcd-btn-text: #FFE4E1; --bar-bg: #F4A6B7; }
+    body.theme-beige { --lcd-bg: #F5E6D3; --lcd-border: #8B5A2B; --lcd-text: #4A3525; --lcd-btn-bg: #8B5A2B; --lcd-btn-text: #F5E6D3; --bar-bg: #D2B48C; }
+    body.theme-mint { --lcd-bg: #E0F2F1; --lcd-border: #00838F; --lcd-text: #004D40; --lcd-btn-bg: #00838F; --lcd-btn-text: #E0F2F1; --bar-bg: #80DEEA; }
+    body.theme-lavender { --lcd-bg: #EAE6F8; --lcd-border: #7B68EE; --lcd-text: #3D2B56; --lcd-btn-bg: #7B68EE; --lcd-btn-text: #EAE6F8; --bar-bg: #B0C4DE; }
+
+    .phone-case {
+      width: 320px;
+      height: 520px;
+      max-width: 95vw;
+      max-height: 95vh;
+      background: linear-gradient(145deg, #ffffff, #e6e6e6);
+      border: 4px solid #d0d0d0;
+      border-radius: 30px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 5px 10px 20px rgba(0,0,0,0.4);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .brand-logo { font-size: 11px; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 6px; }
+
+    .lcd-screen {
+      width: 100%;
+      height: 280px;
+      background: var(--lcd-bg);
+      border: 4px solid var(--lcd-border);
+      border-radius: 10px;
+      box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .status-bar { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: bold; color: var(--lcd-text); border-bottom: 1px dashed var(--lcd-border); padding-bottom: 4px; z-index: 10; }
+    .top-btn-group { display: flex; gap: 2px; }
+    .mini-top-btn { background: var(--lcd-btn-bg); color: var(--lcd-btn-text); border: none; border-radius: 4px; padding: 2px 3px; font-size: 8.5px; cursor: pointer; font-weight: bold; }
+    .pet-stage { flex-grow: 1; display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; }
+    
+    .char-svg { width: 140px; height: 140px; transition: transform 0.3s ease, filter 0.3s ease; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.08)); z-index: 5; position: relative; }
+    
+    .char-svg.idle { animation: breathe 3.5s ease-in-out infinite; }
+    .char-svg.eating { animation: eatYum 0.35s ease-in-out infinite alternate !important; }
+    .char-svg.walking { animation: walkAround 0.5s ease-in-out infinite alternate !important; }
+    .char-svg.sleeping { transform: rotate(85deg) translateY(-8px) translateX(12px); opacity: 0.8; animation: sleepBreathe 4s ease-in-out infinite alternate !important; }
+    .char-svg.wiggle { animation: wiggle 0.2s ease infinite alternate !important; }
+
+    /* 놀아주기 표정 애니메이션 */
+    @keyframes mouthPop { 0% { transform: scaleY(0.2); } 100% { transform: scaleY(1.2); } }
+    .mouth-pop { transform-origin: 50px 46px; animation: mouthPop 0.25s infinite alternate; }
+
+    @keyframes blinkAnim { 0%, 15% { transform: scaleY(0.1); } 30%, 100% { transform: scaleY(1); } }
+    .blink-eye-l { transform-origin: 39px 38px; animation: blinkAnim 1.2s infinite; }
+    .blink-eye-r { transform-origin: 61px 38px; animation: blinkAnim 1.2s infinite; }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.015) translateY(1px); }
+    }
+    @keyframes eatYum {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-7px) scale(1.03, 0.97); }
+    }
+    @keyframes walkAround {
+      0% { transform: translateX(-6px) rotate(-3deg); }
+      100% { transform: translateX(6px) rotate(3deg); }
+    }
+    @keyframes sleepBreathe {
+      0% { transform: rotate(85deg) translateY(-8px) translateX(12px) scale(1); }
+      100% { transform: rotate(85deg) translateY(-8px) translateX(12px) scale(1.03); }
+    }
+    @keyframes wiggle { 0% { transform: rotate(-4deg) scale(1.03); } 100% { transform: rotate(4deg) scale(1.03); } }
+
+    .zzz-effect { position: absolute; top: 15px; right: 40px; font-weight: bold; font-size: 16px; color: var(--lcd-text); animation: zzzFloat 1.5s infinite ease-in-out; pointer-events: none; z-index: 10; }
+    @keyframes zzzFloat { 0% { opacity: 0; transform: translate(0, 10px) scale(0.8); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(15px, -20px) scale(1.2); } }
+    .heart-effect { position: absolute; font-size: 18px; color: #ff3366; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 20; }
+    @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(0.8); } 100% { opacity: 0; transform: translateY(-40px) scale(1.4); } }
+    .poop { position: absolute; bottom: 10px; right: 25px; font-size: 24px; display: none; z-index: 6; }
+    .speech-bubble { position: absolute; top: 8px; background: var(--lcd-text); color: var(--lcd-bg); font-size: 10px; padding: 4px 8px; border-radius: 8px; font-weight: bold; z-index: 20; text-align: center; }
+
+    .gauge-area { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px; color: var(--lcd-text); font-weight: bold; z-index: 10; }
+    .gauge-box { display: flex; align-items: center; gap: 4px; }
+    .bar-bg { flex-grow: 1; height: 8px; background: var(--bar-bg); border: 1px solid var(--lcd-text); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--lcd-text); width: 80%; transition: width 0.3s; }
+
+    .keypad { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+    .btn { background: linear-gradient(145deg, #ffffff, #ececec); border: 1px solid #c0c0c0; border-radius: 10px; padding: 8px 0; font-size: 10px; font-weight: bold; color: #444; box-shadow: 2px 3px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .btn:active { box-shadow: inset 1px 2px 3px rgba(0,0,0,0.2); transform: translateY(1px); }
+    .btn-icon { font-size: 14px; }
+
+    .modal-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; border-radius: 26px; justify-content: center; align-items: center; }
+    .modal-card { background: #fff; width: 280px; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-height: 420px; overflow-y: auto; }
+    .modal-title { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 10px; }
+    .food-options, .breed-options, .outfit-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .food-btn, .breed-btn, .outfit-btn { border: 2px solid #ccc; border-radius: 8px; padding: 8px 4px; background: #f9f9f9; cursor: pointer; font-size: 11px; font-weight: bold; }
+    .breed-btn.selected, .outfit-btn.selected { border-color: var(--lcd-border); background: var(--lcd-bg); color: var(--lcd-text); }
+    .name-input { width: 100%; padding: 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; text-align: center; }
+    .confirm-btn { background: var(--lcd-border); color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .cancel-btn { background: #888; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-left: 4px; }
+    .pet-list-item { display: flex; justify-content: space-between; align-items: center; background: #f5f5f5; border: 1px solid #ddd; padding: 8px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; }
+    .pet-list-item.active { border: 2px solid var(--lcd-border); background: var(--lcd-bg); }
+
+    .stealth-fake-memo { display: none; position: absolute; inset: 0; background: #ffffff; color: #333; padding: 15px; font-family: 'Consolas', monospace; font-size: 11px; line-height: 1.5; z-index: 20000; border-radius: 26px; }
+
+    /* ================= 배경 파티클 이펙트 CSS ================= */
+    #effectContainer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+    .particle { position: absolute; pointer-events: none; }
+    
+    .bubble {
+       bottom: -10px; width: 10px; height: 10px;
+       background: rgba(174, 209, 248, 0.4); border: 1.5px solid rgba(174, 209, 248, 0.8); border-radius: 50%;
+       animation: floatUpSway linear forwards;
+    }
+    @keyframes floatUpSway {
+       0% { transform: translateY(0) translateX(0); opacity: 0; }
+       20% { opacity: 1; }
+       100% { transform: translateY(-300px) translateX(20px); opacity: 0; }
+    }
+    
+    .sparkle {
+       color: #fcd068; font-size: 16px; text-shadow: 0 0 5px rgba(252, 208, 104, 0.8);
+       animation: popSparkle ease-in-out forwards;
+    }
+    @keyframes popSparkle {
+       0% { transform: scale(0) rotate(0deg); opacity: 0; }
+       50% { transform: scale(1.5) rotate(90deg); opacity: 1; }
+       100% { transform: scale(0) rotate(180deg); opacity: 0; }
+    }
+    
+    .petal {
+       top: -10px; width: 12px; height: 12px; background: #ffb7c5;
+       border-radius: 12px 0 12px 0; box-shadow: 0 0 3px rgba(255,183,197,0.8);
+       animation: fallPetal linear forwards;
+    }
+    @keyframes fallPetal {
+       0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+       20% { opacity: 1; }
+       100% { transform: translateY(300px) rotate(360deg) translateX(-50px); opacity: 0; }
+    }
+    
+    .flame {
+       bottom: 10px; width: 18px; height: 18px;
+       background: radial-gradient(circle at 30% 30%, #ffeb3b, #ff5722);
+       border-radius: 50% 0 50% 50%; transform: rotate(45deg);
+       animation: riseFlame linear forwards;
+    }
+    @keyframes riseFlame {
+       0% { transform: translateY(0) scale(1) rotate(45deg); opacity: 0; }
+       20% { opacity: 0.8; }
+       100% { transform: translateY(-100px) scale(0.3) rotate(45deg); opacity: 0; }
+    }
+    
+    .matrix {
+       top: -10px; color: #4ade80; font-family: 'Consolas', monospace; font-weight: bold; font-size: 16px;
+       text-shadow: 0 0 5px #22c55e; opacity: 0;
+       animation: matrixFall linear forwards;
+    }
+    @keyframes matrixFall {
+       0% { transform: translateY(0); opacity: 1; }
+       100% { transform: translateY(300px); opacity: 0; }
+    }
+  </style>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdQsOzW2GNgJNYIgXEEh8tKy1667OWgco",
+      authDomain: "seicallpet-mmmm.firebaseapp.com",
+      databaseURL: "https://seicallpet-mmmm-default-rtdb.firebaseio.com",
+      projectId: "seicallpet-mmmm",
+      storageBucket: "seicallpet-mmmm.firebasestorage.app",
+      messagingSenderId: "838100440885",
+      appId: "1:838100440885:web:97547d8967ad4934e89e7c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.saveToServer = async function() {
+      const userid = document.getElementById('syncUserId').value.trim();
+      const userpw = document.getElementById('syncUserPw').value.trim();
+
+      if (!userid || !userpw) return alert('아이디와 비밀번호를 모두 입력해주세요!');
+
+      const dbRef = ref(db);
+      try {
+        const snapshot = await get(child(dbRef, `users/${userid}`));
+        if (snapshot.exists()) {
+          const existingData = snapshot.val();
+          if (existingData.pw !== userpw) {
+            return alert('비밀번호가 일치하지 않습니다!');
+          }
+        }
+        
+        const saveData = {
+          pw: userpw,
+          petList: window.petList,
+          currentPetId: window.currentPetId,
+          savedAt: Date.now()
+        };
+
+        await set(ref(db, 'users/' + userid), saveData);
+        alert(`☁️ [${userid}] 계정으로 서버에 저장이 완료되었습니다!`);
+        closeSyncModal();
+      } catch (error) {
+        alert('저장 중 오류 발생: ' + error.message);
+      }
+    };
+
+    window.loadFromServer = async function() {
+      const userid = document.getElementById('syncUserId').value.trim();
+      const userpw = document.getElementById('syncUserPw').value.trim();
+
+      if (!userid || !userpw) return alert('아이디와 비밀번호를 모두 입력해주세요!');
+
+      const dbRef = ref(db);
+      try {
+        const snapshot = await get(child(dbRef, `users/${userid}`));
+        if (snapshot.exists()) {
+          const serverData = snapshot.val();
+          if (serverData.pw !== userpw) {
+            return alert('비밀번호가 일치하지 않습니다!');
+          }
+          
+          window.petList = serverData.petList || [];
+          window.currentPetId = serverData.currentPetId;
+          window.savePetData();
+          window.updateUI();
+          alert(`☁️ [${userid}] 계정 데이터를 불러왔습니다!`);
+          closeSyncModal();
+        } else {
+          alert('존재하지 않는 아이디입니다.');
+        }
+      } catch (error) {
+        alert('불러오기 중 오류 발생: ' + error.message);
+      }
+    };
+  </script>
+</head>
+<body class="theme-pink">
+
+  <div class="phone-case">
+    <div class="brand-logo">SEICALL PET</div>
+
+    <div class="lcd-screen">
+      <div class="status-bar">
+        <div>
+          <span id="petLevelDisplay" style="color:#d32f2f;">[Lv.1]</span>
+          <span id="petNameDisplay" style="font-size:11px;">몌무</span>
+        </div>
+        <div class="top-btn-group">
+          <button class="mini-top-btn" onclick="openOutfitModal()">👗 꾸미기</button>
+          <button class="mini-top-btn" onclick="openSyncModal()">☁️ 서버연동</button>
+          <button class="mini-top-btn" onclick="openPetListModal()">🏡 유치원</button>
+          <button class="mini-top-btn" onclick="resetGameData()" style="background:#e53935; color:#fff;">🔄 리셋</button>
+        </div>
+      </div>
+
+      <div class="pet-stage" onclick="triggerCuteAegyo()">
+        <div id="effectContainer"></div>
+        <div class="speech-bubble" id="speechBubble">안녕! 반가워!</div>
+        <div id="zzzContainer"></div>
+        <div id="dogSvgContainer"></div>
+        <div class="poop" id="poop">💩</div>
+      </div>
+
+      <div class="gauge-area">
+        <div class="gauge-box">
+          <span>🍰</span>
+          <div class="bar-bg"><div class="bar-fill" id="hungryBar"></div></div>
+        </div>
+        <div class="gauge-box">
+          <span>🧹</span>
+          <div class="bar-bg"><div class="bar-fill" id="cleanBar"></div></div>
+        </div>
+        <div class="gauge-box">
+          <span>🎈</span>
+          <div class="bar-bg"><div class="bar-fill" id="happyBar"></div></div>
+        </div>
+        <div class="gauge-box">
+          <span>💤</span>
+          <div class="bar-bg"><div class="bar-fill" id="energyBar"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="keypad">
+      <button class="btn" onclick="openFoodModal()">
+        <span class="btn-icon">🍰</span>
+        <span>간식주기</span>
+      </button>
+      <button class="btn" onclick="cleanPoop()">
+        <span class="btn-icon">🧹</span>
+        <span>청소하기</span>
+      </button>
+      <button class="btn" onclick="playPet()">
+        <span class="btn-icon">🎈</span>
+        <span>놀아주기</span>
+      </button>
+      <button class="btn" onclick="walkPet()">
+        <span class="btn-icon">🌟</span>
+        <span>산책하기</span>
+      </button>
+      <button class="btn" onclick="toggleSleep()">
+        <span class="btn-icon">💤</span>
+        <span>재우기</span>
+      </button>
+      <button class="btn" onclick="openPetListModal()">
+        <span class="btn-icon">🏡</span>
+        <span>유치원</span>
+      </button>
+    </div>
+
+    <div class="modal-overlay" id="syncModal">
+      <div class="modal-card">
+        <div class="modal-title">☁️ 기기 간 데이터 연동</div>
+        <input type="text" id="syncUserId" class="name-input" placeholder="아이디 입력" maxlength="12">
+        <input type="password" id="syncUserPw" class="name-input" placeholder="비밀번호 입력" maxlength="12">
+        <div style="margin-top:6px;">
+          <button class="confirm-btn" onclick="saveToServer()">서버에 저장하기</button>
+          <button class="confirm-btn" style="background:#00838F;" onclick="loadFromServer()">불러오기</button>
+        </div>
+        <button class="cancel-btn" style="margin-top:10px;" onclick="closeSyncModal()">닫기</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="foodModal">
+      <div class="modal-card">
+        <div class="modal-title">🍰 맛있는 디저트 고르기</div>
+        <div class="food-options">
+          <div class="food-btn" onclick="feedPet('cookie')">🍪 쿠키<br><small>포만감 +20</small></div>
+          <div class="food-btn" onclick="feedPet('cake')">🍰 케이크<br><small>포만+30 행복+10</small></div>
+          <div class="food-btn" onclick="feedPet('pancake')">🥞 팬케이크<br><small>포만+40 행복+20</small></div>
+          <div class="food-btn" onclick="feedPet('milk')">🥛 우유<br><small>에너지 +25</small></div>
+        </div>
+        <button class="cancel-btn" onclick="closeFoodModal()">닫기</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="outfitModal">
+      <div class="modal-card">
+        <div class="modal-title">👗 악세서리 꾸미기</div>
+        <div class="outfit-options">
+          <div class="outfit-btn" onclick="changeOutfit('none')">✨ 기본</div>
+          <div class="outfit-btn" onclick="changeOutfit('collar')">🩵 리본 케이프</div>
+          <div class="outfit-btn" onclick="changeOutfit('ribbon')">🎀 머리 리본</div>
+          <div class="outfit-btn" onclick="changeOutfit('bowtie')">🎩 보타이</div>
+        </div>
+        <button class="cancel-btn" onclick="closeOutfitModal()">닫기</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="adoptModal">
+      <div class="modal-card">
+        <div class="modal-title">🐾 캐릭터 입양하기</div>
+        <div class="breed-options">
+          <div class="breed-btn" onclick="selectBreed('blue_ear')" id="b_blue_ear">🩵 몌무</div>
+          <div class="breed-btn" onclick="selectBreed('yellow_ear')" id="b_yellow_ear">💛 뫄</div>
+          <div class="breed-btn" onclick="selectBreed('pink_ear')" id="b_pink_ear">🩷 미므</div>
+          <div class="breed-btn" onclick="selectBreed('white_ear')" id="b_white_ear">🤍 므모</div>
+          <div class="breed-btn" onclick="selectBreed('gray_ear')" id="b_gray_ear" style="grid-column: span 2;">🖤 먀미</div>
+        </div>
+        <input type="text" id="petNameInput" class="name-input" placeholder="이름을 입력하세요" maxlength="8">
+        <div style="margin-top:10px;">
+          <button class="confirm-btn" onclick="confirmAdoption()">데려오기</button>
+          <button class="cancel-btn" onclick="closeAdoptModal()" id="cancelAdoptBtn">취소</button>
+        </div>
+        <hr style="margin: 15px 0; border: 0; border-top: 1px dashed #ccc;">
+        <button class="confirm-btn" style="background:#00838F; width:100%;" onclick="openSyncModalFromAdopt()">☁️ 기존 데이터 불러오기</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="petListModal">
+      <div class="modal-card">
+        <div class="modal-title">🏡 캐릭터 유치원</div>
+        <div id="petListContainer"></div>
+        <div style="margin-top:12px;">
+          <button class="confirm-btn" style="background:#00838F;" onclick="openAdoptModalFromList()">+ 새 친구 입양</button>
+          <button class="cancel-btn" onclick="closePetListModal()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stealth-fake-memo" id="fakeMemo">
+      <strong>[업무 메모 - 2026.09]</strong><br><br>
+      - Q3 분기 실적 보고서 양식 검토<br>
+      - 데이터 베이스 백업 일정 확인<br>
+      - 프로젝트 이더넷 스펙 문서 정리 진행 중...<br><br>
+      <i>(Spacebar를 누르면 다시 다마고치로 복귀합니다)</i>
+    </div>
+  </div>
+
+  <script>
+    window.petList = [];
+    window.currentPetId = null;
+    let tempBreed = 'blue_ear';
+    let actionState = 'idle';
+    let actionTimeout = null;
+    let effectInterval = null;
+    let currentEffectBreed = null;
+
+    const themes = ['theme-pink', 'theme-beige', 'theme-mint', 'theme-lavender'];
+    const themeNames = { 'theme-pink': '연핑크', 'theme-beige': '밀크티', 'theme-mint': '민트', 'theme-lavender': '라벤더' };
+    let currentThemeIndex = 0;
+
+    function cycleTheme() {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      applyTheme(themes[currentThemeIndex]);
+      showSpeech(`🎨 ${themeNames[themes[currentThemeIndex]]} 테마!`);
+      soundAction();
+    }
+
+    function applyTheme(themeClass) {
+      document.body.className = themeClass;
+      localStorage.setItem('seicallPetTheme', themeClass);
+    }
+
+    function loadTheme() {
+      const savedTheme = localStorage.getItem('seicallPetTheme') || 'theme-pink';
+      currentThemeIndex = themes.indexOf(savedTheme);
+      if (currentThemeIndex === -1) currentThemeIndex = 0;
+      document.body.className = themes[currentThemeIndex];
+    }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, duration, type='sine') {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundHappy() {
+      playBeep(523, 0.1);
+      setTimeout(() => playBeep(659, 0.1), 100);
+      setTimeout(() => playBeep(783, 0.15), 200);
+    }
+
+    function soundAction() {
+      playBeep(440, 0.08);
+      setTimeout(() => playBeep(880, 0.1), 80);
+    }
+
+    const breedNames = { 
+      blue_ear: '몌무', 
+      yellow_ear: '뫄', 
+      pink_ear: '미므', 
+      white_ear: '므모', 
+      gray_ear: '먀미' 
+    };
+
+    function addExp(pet, amount) {
+      pet.exp = (pet.exp || 0) + amount;
+      const needExp = pet.level * 50;
+      if (pet.exp >= needExp) {
+        pet.level++;
+        pet.exp -= needExp;
+        showSpeech(`🎉 Level Up! [Lv.${pet.level}]`);
+        soundHappy();
+      }
+    }
+
+    window.savePetData = function() {
+      localStorage.setItem('mume_v13_save_data', JSON.stringify({ petList: window.petList, currentPetId: window.currentPetId }));
+    }
+
+    function getCurrentPet() { return window.petList.find(p => p.id === window.currentPetId); }
+
+    function resetGameData() {
+      if (confirm('모든 데이터와 캐릭터가 초기화됩니다.\n정말 처음부터 다시 시작하시겠습니까?')) {
+        localStorage.removeItem('mume_v13_save_data');
+        window.petList = [];
+        window.currentPetId = null;
+        if(effectInterval) clearInterval(effectInterval);
+        document.getElementById('effectContainer').innerHTML = '';
+        currentEffectBreed = null;
+        openAdoptModal(false);
+      }
+    }
+
+    function openSyncModal() { document.getElementById('syncModal').style.display = 'flex'; }
+    function closeSyncModal() { 
+      document.getElementById('syncModal').style.display = 'none'; 
+      if (window.petList.length === 0) {
+        openAdoptModal(false);
+      }
+    }
+
+    function openSyncModalFromAdopt() {
+      document.getElementById('adoptModal').style.display = 'none';
+      openSyncModal();
+    }
+
+    function loadPetData() {
+      loadTheme();
+      const saved = localStorage.getItem('mume_v13_save_data');
+      if (saved) {
+        try {
+          const loaded = JSON.parse(saved);
+          window.petList = loaded.petList || [];
+          window.currentPetId = loaded.currentPetId;
+
+          const now = Date.now();
+          window.petList.forEach(pet => {
+            pet.level = pet.level || 1;
+            pet.exp = pet.exp || 0;
+            pet.outfit = pet.outfit || 'none';
+            const passedMinutes = Math.floor((now - (pet.lastCheckTime || now)) / (1000 * 60));
+            pet.hungry = Math.max(0, pet.hungry - passedMinutes * 1.5);
+            pet.clean = Math.max(0, pet.clean - passedMinutes * 1);
+            pet.happy = Math.max(0, pet.happy - passedMinutes * 1.2);
+            pet.energy = pet.isSleeping ? Math.min(100, pet.energy + passedMinutes * 2) : Math.max(0, pet.energy - passedMinutes * 0.8);
+            pet.hasPoop = pet.hasPoop || (passedMinutes > 30);
+            pet.lastCheckTime = now;
+          });
+
+          if (window.petList.length === 0) openAdoptModal(false);
+          else {
+            if (!window.currentPetId || !getCurrentPet()) window.currentPetId = window.petList[0].id;
+            updateUI();
+          }
+        } catch (e) { openAdoptModal(false); }
+      } else openAdoptModal(false);
+    }
+
+    function startAmbientEffect(breed) {
+      if(effectInterval) clearInterval(effectInterval);
+      const stage = document.getElementById('effectContainer');
+      stage.innerHTML = '';
+
+      effectInterval = setInterval(() => {
+        if(document.visibilityState !== 'visible') return;
+        const el = document.createElement('div');
+        
+        if(breed === 'blue_ear') {
+           el.className = 'particle bubble';
+           el.style.left = (10 + Math.random() * 80) + '%';
+           el.style.animationDuration = (2 + Math.random() * 2) + 's';
+           stage.appendChild(el);
+           setTimeout(()=>el.remove(), 4000);
+        }
+        else if(breed === 'yellow_ear') {
+           el.className = 'particle sparkle';
+           el.innerText = '✦';
+           el.style.left = (10 + Math.random() * 80) + '%';
+           el.style.top = (10 + Math.random() * 80) + '%';
+           el.style.animationDuration = (1 + Math.random() * 1) + 's';
+           stage.appendChild(el);
+           setTimeout(()=>el.remove(), 2000);
+        }
+        else if(breed === 'pink_ear') {
+           el.className = 'particle petal';
+           el.style.left = (20 + Math.random() * 80) + '%';
+           el.style.animationDuration = (3 + Math.random() * 2) + 's';
+           stage.appendChild(el);
+           setTimeout(()=>el.remove(), 5000);
+        }
+        else if(breed === 'white_ear') {
+           el.className = 'particle flame';
+           el.style.left = (20 + Math.random() * 60) + '%'; 
+           el.style.animationDuration = (1 + Math.random() * 1) + 's';
+           stage.appendChild(el);
+           setTimeout(()=>el.remove(), 2000);
+        }
+        else if(breed === 'gray_ear') {
+           el.className = 'particle matrix';
+           el.innerText = Math.random() > 0.5 ? '1' : '0';
+           el.style.left = (5 + Math.random() * 90) + '%';
+           el.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+           stage.appendChild(el);
+           setTimeout(()=>el.remove(), 3000);
+        }
+      }, 500); 
+    }
+
+    function renderDogSVG(pet) {
+      const breed = pet.breed;
+      const outfit = pet.outfit || 'none';
+
+      let earColor = "#aed1f8", eyeThemeColor = "#506b98";
+      if (breed === 'yellow_ear') { earColor = "#fcd068"; eyeThemeColor = "#506b98"; }
+      else if (breed === 'pink_ear') { earColor = "#f9a1c1"; eyeThemeColor = "#ca4b7c"; }
+      else if (breed === 'white_ear') { earColor = "#d6dbe2"; eyeThemeColor = "#6d2323"; }
+      else if (breed === 'gray_ear') { earColor = "#4b4d52"; eyeThemeColor = "#3a5243"; }
+
+      function getSharpEye(x, y, eyeColor, isLeft=true) {
+        const whiteX = x + 1;
+        return `
+          <rect x="${x}" y="${y}" width="6.5" height="10.5" rx="1.5" fill="${eyeColor}"/>
+          <rect x="${whiteX}" y="${y+1}" width="2.2" height="4.5" rx="0.8" fill="#ffffff"/>
+        `;
+      }
+
+      // 눈썹 정의 (캐릭터별 고유 형태 반영)
+      const brows_blue = `<path d="M 33 30 Q 38 28 42 27" stroke="#8c929c" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M 67 30 Q 62 28 58 27" stroke="#8c929c" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      const brows_yellow = `<path d="M 34 29 Q 38 27 42 30" stroke="#8c929c" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M 58 30 Q 62 27 66 29" stroke="#8c929c" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      const brows_pink = `<path d="M 34 27 L 41 31" stroke="#8c929c" stroke-width="1.8" stroke-linecap="round"/><path d="M 66 27 L 59 31" stroke="#8c929c" stroke-width="1.8" stroke-linecap="round"/>`;
+      const brows_white = `<path d="M 34 28 L 42 31" stroke="#8c929c" stroke-width="2" stroke-linecap="round"/><path d="M 66 28 L 58 31" stroke="#8c929c" stroke-width="2" stroke-linecap="round"/>`;
+      const brows_gray = `<line x1="33" y1="28" x2="42" y2="28" stroke="#8c929c" stroke-width="2" stroke-linecap="round"/><line x1="58" y1="28" x2="67" y2="28" stroke="#8c929c" stroke-width="2" stroke-linecap="round"/>`;
+
+      let myBrows = brows_blue;
+      if (breed === 'yellow_ear') myBrows = brows_yellow;
+      if (breed === 'pink_ear') myBrows = brows_pink;
+      if (breed === 'white_ear') myBrows = brows_white;
+      if (breed === 'gray_ear') myBrows = brows_gray;
+
+      const myEyes = getSharpEye(36, 33, eyeThemeColor, true) + getSharpEye(58, 33, eyeThemeColor, false);
+      const myNose = `<circle cx="50" cy="44" r="1.2" fill="${eyeThemeColor}"/>`;
+      const myBlush = `<ellipse cx="27" cy="44" rx="4.5" ry="3" fill="#ffaec9" opacity="${breed==='pink_ear'?'0.75':'0.6'}"/><ellipse cx="73" cy="44" rx="4.5" ry="3" fill="#ffaec9" opacity="${breed==='pink_ear'?'0.75':'0.6'}"/>`;
+      const mySmile = `<path d="M 46 47 Q 48 49 50 47.5 Q 52 49 54 47" stroke="#8c929c" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+
+      let faceSVG = '';
+
+      if (actionState === 'playing') {
+        if (breed === 'blue_ear') {
+          faceSVG = myBrows + myEyes + `<ellipse cx="50" cy="46" rx="2.5" ry="4" fill="${eyeThemeColor}" class="mouth-pop"/>` + myBlush;
+        } else if (breed === 'yellow_ear') {
+          faceSVG = myBrows + getSharpEye(36, 33, eyeThemeColor, true) + `<path d="M 58 38 L 62 34 L 66 38" stroke="${eyeThemeColor}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` + `<path d="M 46 45 Q 50 51 54 45 Z" fill="${eyeThemeColor}"/>` + myBlush + `<circle cx="75" cy="41" r="0.9" fill="#8c929c"/>`;
+        } else if (breed === 'pink_ear') {
+          faceSVG = myBrows + `<g class="blink-eye-l">${getSharpEye(36, 33, eyeThemeColor, true)}</g><g class="blink-eye-r">${getSharpEye(58, 33, eyeThemeColor, false)}</g>` + `<path d="M 46 45 Q 50 50 54 45 Z" fill="${eyeThemeColor}"/>` + myBlush;
+        } else if (breed === 'white_ear') {
+          faceSVG = myBrows + `<path d="M 33 34 L 39 37 L 33 40" stroke="${eyeThemeColor}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M 67 34 L 61 37 L 67 40" stroke="${eyeThemeColor}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` + `<ellipse cx="50" cy="46" rx="3.5" ry="4" fill="${eyeThemeColor}"/>` + myBlush;
+        } else if (breed === 'gray_ear') {
+          faceSVG = `<g transform="translate(0, -6)">` + myBrows + myEyes + `<ellipse cx="50" cy="44" rx="3" ry="4" fill="${eyeThemeColor}"/>` + myBlush + `</g>`;
+        }
+      } else if (actionState === 'eating') {
+        faceSVG = myBrows + myEyes + myNose + `<ellipse cx="50" cy="49" rx="3.5" ry="2.5" fill="#f9a1c1"/>` + myBlush;
+        if (breed === 'yellow_ear') faceSVG += `<circle cx="75" cy="41" r="0.9" fill="#8c929c"/>`;
+      } else {
+        if (breed === 'blue_ear') {
+          faceSVG = myBrows + myEyes + myNose + mySmile + myBlush;
+        } else if (breed === 'yellow_ear') {
+          faceSVG = myBrows + myEyes + myNose + mySmile + myBlush + `<circle cx="75" cy="41" r="0.9" fill="#8c929c"/>`;
+        } else if (breed === 'pink_ear') {
+          faceSVG = myBrows + myEyes + myNose + `<path d="M 46 47 Q 50 52 54 47 Z" fill="${eyeThemeColor}"/>` + myBlush;
+        } else if (breed === 'white_ear') {
+          faceSVG = myBrows + myEyes + myNose + `<path d="M 46 49 L 50 46 L 54 49" stroke="#8c929c" stroke-width="1.8" fill="none" stroke-linecap="round"/>` + myBlush;
+        } else if (breed === 'gray_ear') {
+          faceSVG = myBrows + myEyes + myNose + mySmile + myBlush;
+        }
+      }
+
+      let outfitOverlay = '';
+      if (outfit === 'collar') {
+        outfitOverlay = `
+          <path d="M 40 64 Q 50 72 60 64 L 50 74 Z" fill="#90caf9" stroke="#8c929c" stroke-width="1"/>
+          <circle cx="50" cy="68" r="2" fill="#ffffff"/>
+        `;
+      } else if (outfit === 'ribbon') {
+        outfitOverlay = `
+          <g transform="translate(68, 16)">
+            <polygon points="-7,-4 -1,0 -7,4" fill="#e91e63" stroke="#8c929c" stroke-width="0.8"/>
+            <polygon points="7,-4 1,0 7,4" fill="#e91e63" stroke="#8c929c" stroke-width="0.8"/>
+            <circle cx="0" cy="0" r="2" fill="#ffffff"/>
+          </g>
+        `;
+      } else if (outfit === 'bowtie') {
+        outfitOverlay = `
+          <g transform="translate(50, 64)">
+            <polygon points="-6,-3 0,0 -7,3" fill="#212121"/><polygon points="6,-3 0,0 7,3" fill="#212121"/>
+            <circle cx="0" cy="0" r="1.8" fill="#e0e0e0"/>
+          </g>
+        `;
+      }
+
+      let animClass = 'idle';
+      if (pet.isSleeping) animClass = 'sleeping';
+      else if (actionState === 'walking') animClass = 'walking';
+
+      return `<svg class="char-svg ${animClass}" id="dogSvg" viewBox="0 0 100 100">
+        <rect x="23" y="10" width="15" height="15" rx="5" ry="5" fill="${earColor}" stroke="#8c929c" stroke-width="2"/>
+        <rect x="62" y="10" width="15" height="15" rx="5" ry="5" fill="${earColor}" stroke="#8c929c" stroke-width="2"/>
+
+        <path d="
+          M 31 52 
+          C 25 52, 20 58, 24 67 
+          C 28 72, 33 65, 33 63 
+          C 32 75, 30 83, 38 85 
+          C 43 86, 45 80, 50 80 
+          C 55 80, 57 86, 62 85 
+          C 70 83, 68 75, 67 63 
+          C 67 65, 72 72, 76 67 
+          C 80 58, 75 52, 69 52 Z" 
+          fill="#ffffff" stroke="#8c929c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <path d="
+          M 20 38 
+          C 20 20, 32 16, 50 16 
+          C 68 16, 80 20, 80 38 
+          C 80 56, 68 56, 50 56 
+          C 32 56, 20 56, 20 38 Z" 
+          fill="#ffffff" stroke="#8c929c" stroke-width="2.2" stroke-linejoin="round"/>
+
+        ${faceSVG}
+        ${outfitOverlay}
+      </svg>`;
+    }
+
+    window.updateUI = function() {
+      const pet = getCurrentPet();
+      if (!pet) return;
+
+      document.getElementById('petLevelDisplay').innerText = `[Lv.${pet.level}]`;
+      document.getElementById('petNameDisplay').innerText = pet.name;
+
+      document.getElementById('hungryBar').style.width = pet.hungry + '%';
+      document.getElementById('cleanBar').style.width = pet.clean + '%';
+      document.getElementById('happyBar').style.width = pet.happy + '%';
+      document.getElementById('energyBar').style.width = pet.energy + '%';
+
+      document.getElementById('dogSvgContainer').innerHTML = renderDogSVG(pet);
+
+      const zzzContainer = document.getElementById('zzzContainer');
+      document.getElementById('poop').style.display = pet.hasPoop ? 'block' : 'none';
+
+      if (pet.isSleeping) {
+        zzzContainer.innerHTML = `<div class="zzz-effect">Zzz...</div>`;
+      } else {
+        zzzContainer.innerHTML = '';
+      }
+    }
+
+    function triggerCuteAegyo() {
+      const pet = getCurrentPet();
+      if (!pet || pet.isSleeping) return;
+
+      soundHappy();
+      actionState = 'playing';
+      updateUI();
+
+      const stage = document.getElementById('effectContainer');
+      stage.innerHTML = '';
+
+      let count = 0;
+      let tempInterval = setInterval(() => {
+        if(count >= 8) { clearInterval(tempInterval); return; }
+        count++;
+        const el = document.createElement('div');
+        
+        if(pet.breed === 'blue_ear') {
+           el.className = 'particle bubble';
+           el.style.left = (10 + Math.random() * 80) + '%';
+           el.style.animationDuration = (1 + Math.random() * 1.5) + 's';
+        } else if(pet.breed === 'yellow_ear') {
+           el.className = 'particle sparkle';
+           el.innerText = '✦';
+           el.style.left = (10 + Math.random() * 80) + '%';
+           el.style.top = (10 + Math.random() * 70) + '%';
+           el.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+        } else if(pet.breed === 'pink_ear') {
+           el.className = 'particle petal';
+           el.style.left = (20 + Math.random() * 80) + '%';
+           el.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+        } else if(pet.breed === 'white_ear') {
+           el.className = 'particle flame';
+           el.style.left = (20 + Math.random() * 60) + '%'; 
+           el.style.bottom = (Math.random() * 20) + 'px';
+           el.style.animationDuration = (0.8 + Math.random() * 0.5) + 's';
+        } else if(pet.breed === 'gray_ear') {
+           el.className = 'particle matrix';
+           el.innerText = Math.random() > 0.5 ? '1' : '0';
+           el.style.left = (5 + Math.random() * 90) + '%';
+           el.style.animationDuration = (1 + Math.random() * 1) + 's';
+        }
+        stage.appendChild(el);
+        setTimeout(()=>el.remove(), 2500);
+      }, 150);
+
+      const dog = document.getElementById('dogSvg');
+      if (dog) {
+        dog.classList.remove('idle');
+        dog.classList.add('wiggle');
+      }
+
+      const aegyoQuotes = {
+        blue_ear: "뻐끔 뻐끔! 물방울 놀이 재밌어! 🫧",
+        yellow_ear: "짠! 나한테 바나나? ✨😉",
+        pink_ear: "벚꽃비가 내린다아... 🌸",
+        white_ear: "앗 뜨거! 불꽃 파워 발사!! 🔥 찡긋!",
+        gray_ear: "데이터 동기화 완료. 010101 🟩"
+      };
+
+      showSpeech(aegyoQuotes[pet.breed] || "기분 최고! 💖");
+
+      if (actionTimeout) clearTimeout(actionTimeout);
+      actionTimeout = setTimeout(() => {
+        actionState = 'idle';
+        if (dog) {
+          dog.classList.remove('wiggle');
+          dog.classList.add('idle');
+        }
+        updateUI();
+      }, 2000);
+
+      addExp(pet, 5);
+      savePetData();
+    }
+
+    function showSpeech(msg) {
+      const bubble = document.getElementById('speechBubble');
+      bubble.innerText = msg;
+      bubble.style.display = 'block';
+      setTimeout(() => { bubble.style.display = 'none'; }, 3000);
+    }
+
+    function triggerActionState(stateName, durationMs) {
+      actionState = stateName;
+      if (actionTimeout) clearTimeout(actionTimeout);
+      updateUI();
+      actionTimeout = setTimeout(() => {
+        actionState = 'idle';
+        updateUI();
+      }, durationMs);
+    }
+
+    function openOutfitModal() { document.getElementById('outfitModal').style.display = 'flex'; }
+    function closeOutfitModal() { document.getElementById('outfitModal').style.display = 'none'; }
+
+    function changeOutfit(style) {
+      const pet = getCurrentPet();
+      if (!pet) return;
+      pet.outfit = style;
+      soundAction();
+      closeOutfitModal();
+      savePetData();
+      updateUI();
+      showSpeech('악세서리 착용 완료! ✨');
+    }
+
+    function openFoodModal() { document.getElementById('foodModal').style.display = 'flex'; }
+    function closeFoodModal() { document.getElementById('foodModal').style.display = 'none'; }
+
+    function feedPet(type) {
+      const pet = getCurrentPet();
+      if (!pet) return;
+      if (pet.isSleeping) return showSpeech('쿨쿨 잠자는 중이에요!');
+
+      soundAction();
+      closeFoodModal();
+
+      if (type === 'cookie') {
+        pet.hungry = Math.min(100, pet.hungry + 20);
+        showSpeech('바삭바삭 쿠키 냠냠! 🍪');
+      } else if (type === 'cake') {
+        pet.hungry = Math.min(100, pet.hungry + 30);
+        pet.happy = Math.min(100, pet.happy + 10);
+        showSpeech('달콤한 조각케이크 최고! 🍰');
+      } else if (type === 'pancake') {
+        pet.hungry = Math.min(100, pet.hungry + 40);
+        pet.happy = Math.min(100, pet.happy + 20);
+        showSpeech('폭신폭신 팬케이크 좋아! 🥞');
+      } else if (type === 'milk') {
+        pet.energy = Math.min(100, pet.energy + 25);
+        showSpeech('고소한 우유 마시고 힘내기! 🥛');
+      }
+
+      triggerActionState('eating', 2200);
+
+      if (Math.random() < 0.4) pet.hasPoop = true;
+      addExp(pet, 10);
+      savePetData();
+    }
+
+    function cleanPoop() {
+      const pet = getCurrentPet();
+      if (!pet) return;
+      if (!pet.hasPoop) return showSpeech('이미 방이 깨끗해요!');
+
+      soundAction();
+      pet.hasPoop = false;
+      pet.clean = Math.min(100, pet.clean + 30);
+      showSpeech('구석구석 깨끗하게 청소 완료! 🧹');
+      addExp(pet, 10);
+      savePetData();
+      updateUI();
+    }
+
+    function playPet() {
+      const pet = getCurrentPet();
+      if (!pet) return;
+      if (pet.isSleeping) return showSpeech('잠자는 중이에요!');
+      if (pet.energy < 20) return showSpeech('피곤해서 놀 힘이 없어요! 💤');
+
+      pet.happy = Math.min(100, pet.happy + 25);
+      pet.energy = Math.max(0, pet.energy - 10);
+      triggerCuteAegyo();
+      savePetData();
+    }
+
+    function walkPet() {
+      const pet = getCurrentPet();
+      if (!pet) return;
+      if (pet.isSleeping) return showSpeech('자고 있을 땐 산책할 수 없어요!');
+      if (pet.energy < 30) return showSpeech('체력이 부족해요!');
+
+      soundHappy();
+      pet.energy = Math.max(0, pet.energy - 25);
+      pet.happy = Math.min(100, pet.happy + 35);
+      pet.hungry = Math.max(0, pet.hungry - 15);
+
+      triggerActionState('walking', 2500);
+
+      const walkEvents = [
+        "🌸 산책길에서 알록달록 꽃을 봤어요! (+20 EXP)",
+        "🎈 신나게 산책을 다녀왔어요! (+15 EXP)",
+        "⭐ 반짝이는 별빛 동전을 주웠어요! (+25 EXP)"
+      ];
+      const eventMsg = walkEvents[Math.floor(Math.random() * walkEvents.length)];
+      showSpeech(eventMsg);
+
+      addExp(pet, 20);
+      savePetData();
+    }
+
+    function toggleSleep() {
+      const pet = getCurrentPet();
+      if (!pet) return;
+      soundAction();
+      pet.isSleeping = !pet.isSleeping;
+      showSpeech(pet.isSleeping ? '옆으로 푹 자는 중~ 💤' : '개운하게 잘 일어났다!');
+      savePetData();
+      updateUI();
+    }
+
+    window.openAdoptModalFromList = function() {
+      closePetListModal();
+      openAdoptModal(true);
+    };
+
+    function openAdoptModal(canCancel = true) {
+      tempBreed = 'blue_ear';
+      selectBreed(tempBreed);
+      document.getElementById('petNameInput').value = '';
+      document.getElementById('cancelAdoptBtn').style.display = canCancel ? 'inline-block' : 'none';
+      document.getElementById('adoptModal').style.display = 'flex';
+    }
+
+    function closeAdoptModal() { document.getElementById('adoptModal').style.display = 'none'; }
+
+    function selectBreed(b) {
+      tempBreed = b;
+      document.querySelectorAll('.breed-btn').forEach(el => el.classList.remove('selected'));
+      document.getElementById('b_' + b).classList.add('selected');
+    }
+
+    function confirmAdoption() {
+      const nameInput = document.getElementById('petNameInput').value.trim();
+      if (!nameInput) return alert('이름을 입력해주세요!');
+
+      const newPet = {
+        id: 'pet_' + Date.now(),
+        breed: tempBreed,
+        name: nameInput,
+        level: 1,
+        exp: 0,
+        outfit: 'none',
+        hungry: 100,
+        clean: 100,
+        happy: 100,
+        energy: 100,
+        hasPoop: false,
+        isSleeping: false,
+        lastCheckTime: Date.now()
+      };
+
+      window.petList.push(newPet);
+      window.currentPetId = newPet.id;
+
+      closeAdoptModal();
+      savePetData();
+      updateUI();
+      triggerCuteAegyo();
+    }
+
+    function openPetListModal() {
+      const container = document.getElementById('petListContainer');
+      container.innerHTML = '';
+
+      window.petList.forEach(pet => {
+        const item = document.createElement('div');
+        item.className = `pet-list-item ${pet.id === window.currentPetId ? 'active' : ''}`;
+        item.onclick = () => switchPet(pet.id);
+
+        item.innerHTML = `
+          <div style="text-align:left; font-size:11px;">
+            <strong>${pet.name}</strong> <span style="color:#d32f2f;">[Lv.${pet.level}]</span> (${breedNames[pet.breed]})<br>
+            <span style="color:#666;">🍰 ${Math.round(pet.hungry)}% | 🎈 ${Math.round(pet.happy)}%</span>
+          </div>
+          <div style="font-size:11px; font-weight:bold; color:var(--lcd-border);">
+            ${pet.id === window.currentPetId ? '선택됨' : '놀아주기 ▶'}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      document.getElementById('petListModal').style.display = 'flex';
+    }
+
+    function switchPet(id) {
+      window.currentPetId = id;
+      closePetListModal();
+      savePetData();
+      updateUI();
+      showSpeech('나 불렀어? 반가워!');
+    }
+
+    function closePetListModal() { document.getElementById('petListModal').style.display = 'none'; }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        const fakeMemo = document.getElementById('fakeMemo');
+        fakeMemo.style.display = (fakeMemo.style.display === 'block') ? 'none' : 'block';
+      }
+    });
+
+    setInterval(() => {
+      const now = Date.now();
+      if (window.petList) {
+        window.petList.forEach(pet => {
+          if (!pet.isSleeping) {
+            pet.hungry = Math.max(0, pet.hungry - 1);
+            pet.happy = Math.max(0, pet.happy - 1);
+            pet.energy = Math.max(0, pet.energy - 0.5);
+          } else {
+            pet.energy = Math.min(100, pet.energy + 2);
+          }
+          pet.lastCheckTime = now;
+        });
+        savePetData();
+        updateUI();
+      }
+    }, 60000);
+
+    loadPetData();
+  </script>
+</body>
+</html>
